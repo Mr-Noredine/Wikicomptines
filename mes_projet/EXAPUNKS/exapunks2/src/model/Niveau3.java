@@ -1,14 +1,14 @@
 package model;
 import java.util.ArrayList;
 
-public class Niveau1 extends Niveau {
+public class Niveau3 extends Niveau {
 
     private ArrayList<Instruction> solution;
     private ArrayList<Robot> robotsLancement;
     private ArrayList<Fichier> fichiersLancement;
     private Grille grille;
 
-    public Niveau1() {
+    public Niveau3() {
 
         robotsLancement = new ArrayList<>();
         fichiersLancement = new ArrayList<>();
@@ -41,7 +41,7 @@ public class Niveau1 extends Niveau {
     }
 
     public void InitialiserRobotLancement() {
-        robotsLancement.add(new Robot(1, 0, 0));  
+        robotsLancement.add(new Robot(1, 0, 0, null));  
      // a contiuer ....
         
     }

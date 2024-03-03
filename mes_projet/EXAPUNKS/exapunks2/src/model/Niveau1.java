@@ -41,7 +41,7 @@ public class Niveau1 extends Niveau {
     }
 
     public void InitialiserRobotLancement() {
-        robotsLancement.add(new Robot(1, 0, 0));  
+        robotsLancement.add(new Robot(1, 3, 3, null));  
      // a contiuer ....
         
     }
