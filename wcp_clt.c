@@ -60,18 +60,18 @@ int main(int argc, char *argv[])
 
 	int sock = creer_connecter_sock(argv[1], PORT_WCP);
 	
-	uint16_t nb_comptines = recevoir_liste_comptines(sock);
-	// j'ai un autre probléme recevoir comptines il ne s'arrete pas, peut-etre c'est envoyer liste qui est trop grand (il met 0 a partir de moment ou la comptines est fini 
+	uint16_t nb_comptines = recevoir_liste_comptines(sock); 
 	uint16_t nc = saisir_num_comptine(nb_comptines);
 	envoyer_num_comptine(sock, nc);
+	afficher_comptine(sock);
 	
-	/* À compléter */
+	close(sock);
 	return 0;
 }
 
 int creer_connecter_sock(char *addr_ipv4, uint16_t port)
 {
-	/* À définir */
+	
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock < 0) {
 		perror("socket");
@@ -87,7 +87,7 @@ int creer_connecter_sock(char *addr_ipv4, uint16_t port)
 	}
 	
 	socklen_t sl = sizeof(sa);
-	ssize_t status = connect(sock, (struct sockaddr*) &sa, sl);
+	int status = connect(sock, (struct sockaddr*) &sa, sl);
 	if (status < 0) {
 		perror("connect");
 		exit(4);
@@ -98,16 +98,16 @@ int creer_connecter_sock(char *addr_ipv4, uint16_t port)
 
 uint16_t recevoir_liste_comptines(int fd)
 {	
-	int n;
+
 	uint16_t nb_comptines = 0;
 	char buffer[257];
+	read(fd, buffer, 2);
+	sscanf(buffer,"%"SCNu16"\n", &nb_comptines);	
 	
-	n = read(fd, buffer, 5);
-		sscanf(buffer, "\t%"SCNu16, &nb_comptines);
-		write(0, buffer, n);
-		
-		
-
+	for(int i = 0; i <= nb_comptines + 1 ; i++) {
+		read_until_nl(fd, buffer);
+		printf("%s", buffer);
+	}
 	
 	return nb_comptines;
 }
@@ -137,7 +137,29 @@ void envoyer_num_comptine(int fd, uint16_t nc)
 	free(buffer);
 }
 
+
+
+int est_ligne_vide(char * ligne) {
+	if(ligne[0] == '\n')	return 1;
+	return 0;
+}
+
 void afficher_comptine(int fd)
 {
-	/* À définir */
+	char buffer[1024];
+	int n, cpt_ligneVide = 0;
+	while((n = read_until_nl(fd, buffer)) != 0) {
+		
+		buffer[n+1] = '\0';
+		if (est_ligne_vide(buffer)) {
+			cpt_ligneVide++;
+			if (cpt_ligneVide == 2) return;
+			printf("\n");
+			continue;
+		}
+		
+		cpt_ligneVide = 0;
+		write(0, buffer, n);
+	}
+	
 }

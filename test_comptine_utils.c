@@ -8,16 +8,25 @@
 
 **********************************************************************************/
 
-
-#include <stdlib.h>
+/* fichiers de la bibliothèque standard */
 #include <stdio.h>
-#include <inttypes.h>
+#include <stdlib.h>
+#include <dirent.h>
 #include <string.h>
-#include <unistd.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <dirent.h>
-#include "comptine_utils.h"
+#include <stdint.h>
+#include <inttypes.h>
 
+/* bibliothèque standard unix */
+#include <unistd.h> /* close, read, write */
+#include <sys/types.h>
+#include <sys/socket.h>
+/* spécifique à internet */
+#include <arpa/inet.h> /* inet_pton */
+/* spécifique aux comptines */
+#include "comptine_utils.h"
 
 int est_nom_fichier_comptine(char * );
 int read_until_nl(int fd, char *buf);
@@ -28,11 +37,12 @@ void liberer_catalogue(struct catalogue *c);
 void envoyer_liste(int fd, struct catalogue *c);
 uint16_t recevoir_liste_comptines(int fd);
 void envoyer_num_comptine(int fd, uint16_t nc);
+void afficher_comptine(int fd);
+void envoyer_num_comptine(int fd, uint16_t nc);
+int est_ligne_vide(char * ligne);
 
 int main(int argc, char ** argv) {
-	uint16_t k = 12;
-	printf("k = ?: ");
-	envoyer_num_comptine(1, k);
+	
 	/**				Teste de est_nom_fichier_comptine : 						********/
 	char mot[45];
 	
@@ -99,9 +109,22 @@ int main(int argc, char ** argv) {
 	sleep(5);
 	printf("\tTu m'as cru? ne pars pas je vais t'afficher ce qu'ils recoivent dans l'autre côté:\n");
 	
-	int fd = open("file.txt", O_RDONLY | O_WRONLY | O_TRUNC | O_CREAT);
+	int fd = open("file.txt", O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	if (fd < 0) {
+		perror("open");
+		exit(4);
+	}
 	envoyer_liste(fd, c);
+	close(fd);
+	
+	fd = open("file.txt", O_RDONLY);
+	if (fd < 0) {
+		printf("je suis là\n");
+		perror("open");
+		exit(4);
+	}
 	uint16_t nb = recevoir_liste_comptines(fd);
+	close(fd);
 	printf("%"PRIu16"\n", nb);
 	
 	liberer_catalogue(c);
@@ -204,44 +227,73 @@ void liberer_catalogue(struct catalogue *c)
 }
 
 
+
 void envoyer_liste(int fd, struct catalogue *c)
 {
-	/* À définir */
-	int i = 0;
-	char forme[25];
+
+	uint16_t i = 0;	
+	dprintf(fd,"%"PRIu16"\n", c->nb);
 	for(i = 0 ; i < c->nb ; i++) {
-		sprintf(forme, "\t%d ", i);
-		write(fd, forme, strlen(forme));
-		write(fd, c->tab[i]->titre, strlen(c->tab[i]->titre));
+		dprintf(fd, "\t%"PRIu16" %s", i, c->tab[i]->titre);
 	}	
+	dprintf(fd, "\n");
+
 }
 
 
 uint16_t recevoir_liste_comptines(int fd)
 {	
-	int n;
+	
 	uint16_t nb_comptines = 0;
 	char buffer[257];
+	read(fd, buffer, 2);
+	sscanf(buffer,"%"SCNu16"\n", &nb_comptines);	
 	
-	while((n = read(fd, buffer, 256)) > 0) {
-		sscanf(buffer, "\t%"SCNu16, &nb_comptines);
-		write(0, buffer, n);
+	for(int i = 0; i <= nb_comptines + 1 ; i++) {
+		read_until_nl(fd, buffer);
+		printf("%s", buffer);
 	}
-
 	
 	return nb_comptines;
 }
 
-
 void envoyer_num_comptine(int fd, uint16_t nc)
 {
-	int s = write(fd, &nc, sizeof(nc));
-	if (s == -1) {
-		perror("Erreur dans l'écriture dans le fichier");
+	nc = htons(nc);
+	uint8_t * buffer = malloc(3);
+	
+	memcpy(buffer, &nc, 2);
+	ssize_t status = send(fd, buffer, 2, 0);
+	if (status < 0) {
+		perror("send");
 		exit(4);
 	}
+	free(buffer);
 }
+
+
+
+int est_ligne_vide(char * ligne) {
+	if(ligne[0] == '\n')	return 1;
+	return 0;
+}
+
+void afficher_comptine(int fd)
+{
+	char buffer[1024];
+	int n, cpt_ligneVide = 0;
+	while((n = read_until_nl(fd, buffer)) > 0) {
 	
+		buffer[n+1] = '\0';
+		if (est_ligne_vide(buffer)) {
+			cpt_ligneVide++;
+		}
 		
+		if (cpt_ligneVide == 2) break;
+		cpt_ligneVide = 0;
+		write(0, buffer, n);
+	}
+	
+}		
 
 

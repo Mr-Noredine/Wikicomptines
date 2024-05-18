@@ -77,23 +77,21 @@ int main(int argc, char *argv[])
 		
 		struct catalogue * c = creer_catalogue(argv[1]);
 		
-		// lorsque je met envoyer_liste(0, c) il affiche le catalogue dans le terminal mais lorsque je met envoyer_liste(sock, c) je n'arrive meme pas a l'instruction suivante "catalogue bien envoyée.
 		envoyer_liste(socket_l, c);
+		uint16_t ic = recevoir_num_comptine(socket_l);
+		envoyer_comptine(socket_l, argv[1], c, ic);
 		liberer_catalogue(c);
-		
-		uint16_t nc = recevoir_num_comptine(socket_l);
-		printf("je suis là\n");
-		printf("le numero comptine est : %"PRIu16"\n", nc);
+		close(socket_l);
 	}
 	
 	
-	/* À compléter */
+	
 	return 0;
 }
 
 int creer_configurer_sock_ecoute(uint16_t port)
 {
-	/* À définir */
+
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock < 0) {
 		perror("socket");
@@ -123,31 +121,27 @@ int creer_configurer_sock_ecoute(uint16_t port)
 
 void envoyer_liste(int fd, struct catalogue *c)
 {
-	/* À définir */
-	uint16_t i = 0;
-	// ça marche bien c'est 2 instructions, mais je n'ai pas bien compris leur fonctionnement !
-	// ma démarche est de mettre sur la premiere ligne le nombre de comptines, puis sur les lignes suivantes mettre la liste, apres avec la maniere dont j'ai lus les octets et scanner le nombre d'octets sur le buffer avec sscanf dans recevoire_liste_comptines ça marche que lorsque j'ajoute c'est 2 ligne => memcpy (....) et write(fd, buffer, 2);
-	
-	
+
+	uint16_t i = 0;	
+	dprintf(fd,"%"PRIu16"\n", c->nb);
 	for(i = 0 ; i < c->nb ; i++) {
-		dprintf(fd, "\t%"PRIu16" ", i);
-		write(fd, c->tab[i]->titre, strlen(c->tab[i]->titre));
-		
+		dprintf(fd, "\t%"PRIu16" %s", i, c->tab[i]->titre);
 	}	
-		write(fd, "\n" , 1);
-	printf("envoyer liste terminé\n");
+	dprintf(fd, "\n");
+
 }
 
 
 uint16_t recevoir_num_comptine(int fd)
 {
 	uint16_t nc;
-	ssize_t status = recv(fd, &nc, 2, 0);
+	uint8_t * buffer = malloc(3);
+	ssize_t status = read(fd, buffer, 2);
 	if (status < 0) {
-		perror("recv");
+		perror("write");
 		exit(4);
 	}
-
+	memcpy(&nc, buffer, 2);
 	nc = ntohs(nc);
 	return nc;
 
@@ -155,5 +149,22 @@ uint16_t recevoir_num_comptine(int fd)
 
 void envoyer_comptine(int fd, const char *dirname, struct catalogue *c, uint16_t ic)
 {
-	/* À définir */
+	int n, totale = 0;
+	char buffer[256];
+	char file_path[256];
+	strcpy(file_path, dirname);
+	strcat(file_path, "/");
+	strcat(file_path, c->tab[ic]->nom_fichier);
+	
+	int fileD = open(file_path, O_RDONLY);
+	if (fileD < 0) {
+		perror("open");
+		exit(4);
+	}
+	while ((n = read_until_nl(fileD, buffer)) > 0){
+		write(fd, buffer, n);
+		totale+= n;
+	}
+	dprintf(fd, "\n\n");
+		 	
 }

@@ -1,0 +1,125 @@
+\--------------------------------------------------------------------------------------------------------------------------------------------------------------------------/
+
+			Rapport de Projet:   Wikicomptines
+				
+				
+				Noureddine	 MOHAMMEDI 	12209923 			
+/--------------------------------------------------------------------------------------------------------------------------------------------------------------------------\
+
+
+	 1) Exécution du Programme test_comptine_utils.c		
+	 	Voici les résultats de l'exécution du programme test_comptine_utils.c, où j'ai testé les fonctions et affiché les résultats avec une fonction main:
+	
+	
+	noureddine@noureddine-ThinkPad-T460:~/USPN/projets/sys_reseaux/Wikicomptines_bis$ ./test_comptine_utils 
+	--------------------------------
+	Tester si un fichier à l'extension .cpt ou non : 
+	-> Entrer le nom de fichier:	lol.cpt
+		<<  Réponse:	OUI   >>
+
+	--------------------------------
+	Tester la fonction read_until_nl : (nb_octets) && (Affichage de la ligne) 
+	->Etrer une ligne: 
+	lol !
+		Nombre d'octets:  5
+		Ligne:  lol !
+
+	--------------------------------
+	Tester init_cpt_depuis_fichier: 
+	-> Entrer le nom de fichier .cpt: poissons.cpt
+	-> Entrer le nom de dossier: comptines
+		Nom de fichier .cpt : poissons.cpt
+		Titre de la comptine : Les petits poissons dans l'eau
+
+	--------------------------------
+	Affichage de catalogue créer à partir de dossier ./comptines: 
+	 0. 
+		Nom de fichier .cpt : cerf.cpt
+		Titre de la comptine : Dans sa maison, un grand cerf
+
+	 1. 
+		Nom de fichier .cpt : poissons.cpt
+		Titre de la comptine : Les petits poissons dans l'eau
+
+	 2. 
+		Nom de fichier .cpt : petit_lapin.cpt
+		Titre de la comptine : Mon petit lapin
+
+	 3. 
+		Nom de fichier .cpt : gaston.cpt
+		Titre de la comptine : G comme Gaston
+
+	 4. 
+		Nom de fichier .cpt : escargot.cpt
+		Titre de la comptine : Petit escargot
+
+	 5. 
+		Nom de fichier .cpt : tortues.cpt
+		Titre de la comptine : La famille tortue
+
+	--------------------------------
+	Teste de envoyer_liste(fd, c): 
+	-> !Faut faire cat sur "file.txt" pour vérifier, Sorry!
+		Tu m'as cru? ne pars pas je vais t'afficher ce qu'ils recoivent dans l'autre côté:
+		0 Dans sa maison, un grand cerf
+		1 Les petits poissons dans l'eau
+		2 Mon petit lapin
+		3 G comme Gaston
+		4 Petit escargot
+		5 La famille tortue
+
+
+
+/--------------------------------------------------------------------------------------------------------------------------------------------------------------------------\
+
+	2) Problèmes rencontrer et solutions trouvés: 
+	
+	** Problèmes 01: 
+	
+		Dans la fonction recevoir_liste_comptines(int fd), j'avais initialement implémenté une boucle while comme suit : while((n = read_until_nl(fd, buffer)) > 0) { ... }.
+	Cependant, cela posait un problème : la boucle ne s'arrêtait jamais de lire même lorsqu'il n'y avait plus de données à lire, empêchant ainsi le programme de sortir de la boucle.
+
+		J'ai résolu ce problème en adoptant une approche différente. D'abord, j'écris dans la socket deux octets représentant le nombre de comptines. Ensuite, j'utilise une boucle for allant de 0 à nombre_comptine - 1 pour écrire les titres des comptines...etc.
+
+		Du côté de la réception, il suffit de lire les deux octets dans &nb_comptines, puis de copier les titres des comptines avec une boucle for allant de 0 à nombre_comptine - 1 en utilisant read_until_nl(fd, buffer). Enfin, j'affiche le contenu du buffer dans le terminal à l'aide de printf.
+		
+		
+		
+	** Problèmes 02: 
+	Lorsque j'utilise la fonction recevoir_liste_comptines(int fd) avec un descripteur de fichier pointant vers un fichier .txt, les données sont écrites correctement. Cependant, lorsque j'utilise un descripteur de fichier pointant vers une socket ou stdout, des erreurs surviennent.
+
+	exemple 01:
+	
+	noureddine@noureddine-ThinkPad-T460:~/USPN/projets/sys_reseaux/Wikicomptines_bis$ cat file.txt 
+	6
+		0 Dans sa maison, un grand cerf
+		1 Les petits poissons dans l'eau
+		2 Mon petit lapin
+		3 G comme Gaston
+		4 Petit escargot
+		5 La famille tortue
+
+	exemple 02: j'ai met dans le main de serveur envoyer_liste(0, c) : 
+	noureddine@noureddine-ThinkPad-T460:~/USPN/projets/sys_reseaux/Wikicomptines_bis$ ./wcp_srv comptines
+	6
+		0 Dans sa maison, un grand cerf
+		1 Les petits poissons dans l'eau
+		2 Mon petit lapin
+	o	3 G comme Gaston
+
+		4 Petit escargot
+
+		5 La famille tortue
+
+	$$$ pour ce problème je ne trouve pas de solutions !
+	
+
+/--------------------------------------------------------------------------------------------------------------------------------------------------------------------------\
+	3) Ressources externes: 
+	
+	https://www.developpez.net/forums/d1196700/c-cpp/c/debuter/lister-fichiers-repertoire
+
+
+
+
+			

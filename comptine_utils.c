@@ -19,15 +19,15 @@
 
 int read_until_nl(int fd, char *buf)
 {
-	/* À définir */
+
 	int nb_octets = 0, n = 0;
 	while((n = read(fd, buf + nb_octets, 1)) > 0) {
 		if (buf[nb_octets] == '\n') {
+			nb_octets++;
 			break;
 		}
 		nb_octets++;
 	}
-	
 	buf[nb_octets + 1] = '\0';
 	return nb_octets;
 }
@@ -70,7 +70,6 @@ void liberer_comptine(struct comptine *cpt)
 	free(cpt);
 }
 
-/* Source : "https:\//www.developpez.net/forums/d1196700/c-cpp/c/debuter/lister-fichiers-repertoire" */
 
 struct catalogue *creer_catalogue(const char *dir_name)
 {
