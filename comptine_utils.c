@@ -28,7 +28,7 @@ int read_until_nl(int fd, char *buf)
 		}
 		nb_octets++;
 	}
-	buf[nb_octets + 1] = '\0';
+	buf[nb_octets] = '\0';
 	return nb_octets;
 }
 
@@ -45,7 +45,7 @@ int est_nom_fichier_comptine(char *nom_fich)
 
 struct comptine *init_cpt_depuis_fichier(const char *dir_name, const char *base_name)
 { 
-	struct comptine * cpt = malloc(sizeof(struct comptine *));
+	struct comptine * cpt = malloc(sizeof(struct comptine));
 	cpt->nom_fichier = malloc(sizeof(char) * strlen(base_name) + 1);
 	strcpy(cpt->nom_fichier, base_name);
 	
@@ -59,7 +59,8 @@ struct comptine *init_cpt_depuis_fichier(const char *dir_name, const char *base_
 	int title_size = read_until_nl(fd1, t);
 	cpt->titre = malloc(sizeof(char) * (title_size + 1));
 	strcpy(cpt->titre, t);
-	
+	close(fd1);
+
 	return cpt;
 }
 
@@ -80,7 +81,8 @@ struct catalogue *creer_catalogue(const char *dir_name)
 		exit(3);
 	}
 	
-	struct catalogue * c = malloc(sizeof(struct catalogue *));
+	struct catalogue * c = malloc(sizeof(struct catalogue));
+	c->nb = 0;
 	int sizeTab = 5;
 	c->tab = malloc(sizeof(struct comptine *) * sizeTab);
 	

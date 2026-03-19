@@ -78,8 +78,8 @@ int creer_connecter_sock(char *addr_ipv4, uint16_t port)
 		exit(3);
 	}
 	
-	struct sockaddr_in sa = { .sin_family = AF_INET, 
-								.sin_port = ntohs(PORT_WCP)
+	struct sockaddr_in sa = { .sin_family = AF_INET,
+								.sin_port = htons(PORT_WCP)
 							};
 	if (inet_pton(AF_INET, addr_ipv4, &sa.sin_addr) == -1) {
 		perror("inet_pton");
@@ -101,10 +101,10 @@ uint16_t recevoir_liste_comptines(int fd)
 
 	uint16_t nb_comptines = 0;
 	char buffer[257];
-	read(fd, buffer, 2);
-	sscanf(buffer,"%"SCNu16"\n", &nb_comptines);	
-	
-	for(int i = 0; i <= nb_comptines + 1 ; i++) {
+	read_until_nl(fd, buffer);
+	sscanf(buffer, "%"SCNu16, &nb_comptines);
+
+	for(int i = 0; i < nb_comptines + 1 ; i++) {
 		read_until_nl(fd, buffer);
 		printf("%s", buffer);
 	}
@@ -150,7 +150,7 @@ void afficher_comptine(int fd)
 	int n, cpt_ligneVide = 0;
 	while((n = read_until_nl(fd, buffer)) != 0) {
 		
-		buffer[n+1] = '\0';
+		buffer[n] = '\0';
 		if (est_ligne_vide(buffer)) {
 			cpt_ligneVide++;
 			if (cpt_ligneVide == 2) return;
@@ -159,7 +159,7 @@ void afficher_comptine(int fd)
 		}
 		
 		cpt_ligneVide = 0;
-		write(0, buffer, n);
+		write(1, buffer, n);
 	}
 	
 }

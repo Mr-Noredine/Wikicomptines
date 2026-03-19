@@ -138,11 +138,12 @@ uint16_t recevoir_num_comptine(int fd)
 	uint8_t * buffer = malloc(3);
 	ssize_t status = read(fd, buffer, 2);
 	if (status < 0) {
-		perror("write");
+		perror("read");
 		exit(4);
 	}
 	memcpy(&nc, buffer, 2);
 	nc = ntohs(nc);
+	free(buffer);
 	return nc;
 
 }
