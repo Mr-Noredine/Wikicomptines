@@ -55,6 +55,12 @@ struct comptine *init_cpt_depuis_fichier(const char *dir_name, const char *base_
 	strcat(file_path, base_name);
 	
 	int fd1 = open(file_path, O_RDONLY);
+	if (fd1 < 0) {
+		perror("open");
+		free(cpt->nom_fichier);
+		free(cpt);
+		return NULL;
+	}
 	char t[256];
 	int title_size = read_until_nl(fd1, t);
 	cpt->titre = malloc(sizeof(char) * (title_size + 1));
@@ -99,6 +105,7 @@ struct catalogue *creer_catalogue(const char *dir_name)
 		
 		c->tab[c->nb - 1] = init_cpt_depuis_fichier(dir_name, sd->d_name);
 	}
+	closedir(dir);
 	return c;
 }
 

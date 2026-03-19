@@ -122,11 +122,10 @@ int creer_configurer_sock_ecoute(uint16_t port)
 void envoyer_liste(int fd, struct catalogue *c)
 {
 
-	uint16_t i = 0;	
-	dprintf(fd,"%"PRIu16"\n", c->nb);
+	uint16_t i = 0;
 	for(i = 0 ; i < c->nb ; i++) {
-		dprintf(fd, "\t%"PRIu16" %s", i, c->tab[i]->titre);
-	}	
+		dprintf(fd, "%6"PRIu16" %s", i, c->tab[i]->titre);
+	}
 	dprintf(fd, "\n");
 
 }

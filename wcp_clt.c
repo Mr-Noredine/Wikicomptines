@@ -101,21 +101,20 @@ uint16_t recevoir_liste_comptines(int fd)
 
 	uint16_t nb_comptines = 0;
 	char buffer[257];
-	read_until_nl(fd, buffer);
-	sscanf(buffer, "%"SCNu16, &nb_comptines);
-
-	for(int i = 0; i < nb_comptines + 1 ; i++) {
-		read_until_nl(fd, buffer);
+	while(read_until_nl(fd, buffer) > 0) {
+		if (buffer[0] == '\n')
+			break;
 		printf("%s", buffer);
+		nb_comptines++;
 	}
-	
+
 	return nb_comptines;
 }
 
 uint16_t saisir_num_comptine(uint16_t nb_comptines)
 {
 	uint16_t n;
-	printf("Quelle comptine voulez-vous ? (Etrer un entier entre 0 et %"PRIu16") : ", nb_comptines);
+	printf("Quelle comptine voulez-vous ? (Entrer un entier entre 0 et %"PRIu16") : ", (uint16_t)(nb_comptines - 1));
 	do {
 		scanf("%"SCNu16, &n);
 	} while(n >= nb_comptines || n < 0);
